@@ -116,7 +116,7 @@ export default function MachineDetail() {
           className="add-breakdown-btn"
           onClick={() => navigate(`/machine/${id}/breakdown`)}
         >
-          ⚠ REPORT BREAKDOWN
+          ⚠ ADD BREAKDOWN
         </button>
 
         {/* Breakdown History */}

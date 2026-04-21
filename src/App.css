@@ -34,7 +34,7 @@ body {
 
 .app {
   max-width: 480px;
-  margin: 0 auto;
+  margin: 30px auto;
   min-height: 100vh;
   background: var(--bg);
 }

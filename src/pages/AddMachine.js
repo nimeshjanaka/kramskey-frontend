@@ -2,12 +2,6 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { createMachine } from '../services/api';
 
-const MACHINE_TYPES = [
-  'CNC Machine', 'Lathe Machine', 'Milling Machine', 'Grinding Machine',
-  'Press Machine', 'Injection Moulding', 'Conveyor', 'Compressor',
-  'Generator', 'Welding Machine', 'Cutting Machine', 'Packaging Machine','chiller', 'Other'
-];
-
 export default function AddMachine() {
   const navigate = useNavigate();
   const [form, setForm] = useState({
@@ -25,10 +19,10 @@ export default function AddMachine() {
   };
 
   const handleSubmit = async () => {
-    if (!form.machineName.trim() || !form.machineNumber.trim() || !form.machineType) {
-      setError('Please fill all required fields');
-      return;
-    }
+    if (!form.machineName.trim()) { setError('Please enter machine name'); return; }
+    if (!form.machineNumber.trim()) { setError('Please enter machine number'); return; }
+    if (!form.machineType.trim()) { setError('Please enter machine type'); return; }
+
     setLoading(true);
     try {
       await createMachine(form);
@@ -74,17 +68,13 @@ export default function AddMachine() {
 
         <div className="form-group">
           <label className="form-label">Machine Type *</label>
-          <select
-            className="form-select"
+          <input
+            className="form-input"
             name="machineType"
+            placeholder="e.g. CNC Machine, Lathe, Compressor..."
             value={form.machineType}
             onChange={handleChange}
-          >
-            <option value="">Select type...</option>
-            {MACHINE_TYPES.map(t => (
-              <option key={t} value={t}>{t}</option>
-            ))}
-          </select>
+          />
         </div>
 
         <div className="form-group">
@@ -94,17 +84,34 @@ export default function AddMachine() {
               <button
                 key={s}
                 type="button"
-                className={`status-btn ${form.status === s ? (s === 'operational' ? 'active-op' : s === 'breakdown' ? 'active-bd' : 'active-mt') : ''}`}
+                className={`status-btn ${
+                  form.status === s
+                    ? s === 'operational' ? 'active-op'
+                    : s === 'breakdown' ? 'active-bd'
+                    : 'active-mt'
+                    : ''
+                }`}
                 onClick={() => setForm(prev => ({ ...prev, status: s }))}
               >
-                {s}
+                {s === 'operational' ? '✓ Operational'
+                  : s === 'breakdown' ? '✕ Breakdown'
+                  : '⚙ Maintenance'}
               </button>
             ))}
           </div>
         </div>
 
         {error && (
-          <div style={{ color: 'var(--danger)', fontSize: 13, fontFamily: 'IBM Plex Mono', marginBottom: 12 }}>
+          <div style={{
+            color: 'var(--danger)',
+            fontSize: 13,
+            fontFamily: 'IBM Plex Mono',
+            marginBottom: 12,
+            background: 'rgba(239,68,68,0.08)',
+            border: '1px solid rgba(239,68,68,0.2)',
+            borderRadius: 8,
+            padding: '10px 14px',
+          }}>
             ⚠ {error}
           </div>
         )}
