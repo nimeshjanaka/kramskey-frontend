@@ -1,25 +1,24 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { getMachine, updateStatus, deleteMachine, getImageUrl } from '../services/api';
+import { useAuth } from '../context/AuthContext';
 
 export default function MachineDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { isLeadMechanic } = useAuth();
   const [machine, setMachine] = useState(null);
   const [loading, setLoading] = useState(true);
   const [toast, setToast] = useState('');
   const [lightbox, setLightbox] = useState(null);
 
-  const showToast = (msg) => {
-    setToast(msg);
-    setTimeout(() => setToast(''), 2500);
-  };
+  const showToast = (msg) => { setToast(msg); setTimeout(() => setToast(''), 2500); };
 
   const load = async () => {
     try {
       const data = await getMachine(id);
       setMachine(data);
-    } catch (err) {
+    } catch {
       showToast('Failed to load machine');
     } finally {
       setLoading(false);
@@ -29,6 +28,7 @@ export default function MachineDetail() {
   useEffect(() => { load(); }, [id]);
 
   const handleStatusChange = async (status) => {
+    if (!isLeadMechanic) return;
     try {
       await updateStatus(id, status);
       setMachine(prev => ({ ...prev, status }));
@@ -39,6 +39,7 @@ export default function MachineDetail() {
   };
 
   const handleDelete = async () => {
+    if (!isLeadMechanic) return;
     if (!window.confirm('Delete this machine and all its records?')) return;
     try {
       await deleteMachine(id);
@@ -60,48 +61,41 @@ export default function MachineDetail() {
 
   return (
     <>
-      {/* Lightbox */}
       {lightbox && (
         <div className="lightbox" onClick={() => setLightbox(null)}>
           <button className="lightbox-close">✕</button>
           <img src={lightbox} alt="breakdown" />
         </div>
       )}
-
-      {/* Toast */}
       {toast && <div className="toast">{toast}</div>}
 
-      {/* Header */}
       <div className="header">
         <button className="header-back" onClick={() => navigate('/')}>←</button>
         <div>
           <div className="header-title">{machine.machineName}</div>
           <div className="header-sub" style={{ fontSize: 10 }}>#{machine.machineNumber}</div>
         </div>
+        <button className="btn-icon" onClick={() => navigate('/')} title="Dashboard" style={{ marginLeft: 'auto' }}>🏠</button>
       </div>
 
       <div className="page">
-        {/* Machine Info */}
         <div className="machine-detail-header">
           <div className="machine-detail-name">{machine.machineName}</div>
           <div className="machine-detail-num">Machine No. {machine.machineNumber}</div>
           <div className="machine-type-tag">{machine.machineType}</div>
-
           <hr className="divider" style={{ marginTop: 12, marginBottom: 12 }} />
-
-          <div className="section-label">Update Status</div>
-          <div className="status-selector">
-            <button className={statusBtnClass('operational')} onClick={() => handleStatusChange('operational')}>
-              ✓ Operational
-            </button>
-            <button className={statusBtnClass('breakdown')} onClick={() => handleStatusChange('breakdown')}>
-              ✕ Breakdown
-            </button>
-            <button className={statusBtnClass('maintenance')} onClick={() => handleStatusChange('maintenance')}>
-              ⚙ Maintenance
-            </button>
-          </div>
-
+          <div className="section-label">{isLeadMechanic ? 'Update Status' : 'Current Status'}</div>
+          {isLeadMechanic ? (
+            <div className="status-selector">
+              <button className={statusBtnClass('operational')} onClick={() => handleStatusChange('operational')}>✓ Operational</button>
+              <button className={statusBtnClass('breakdown')} onClick={() => handleStatusChange('breakdown')}>✕ Breakdown</button>
+              <button className={statusBtnClass('maintenance')} onClick={() => handleStatusChange('maintenance')}>⚙ Maintenance</button>
+            </div>
+          ) : (
+            <div style={{ marginBottom: 12 }}>
+              <span className={`status-badge ${machine.status}`} style={{ fontSize: 14, padding: '6px 14px' }}>{machine.status}</span>
+            </div>
+          )}
           <div className="machine-meta" style={{ marginTop: 16 }}>
             <span>📅</span>
             <span>Last updated: {new Date(machine.updatedAt).toLocaleString('en-GB', {
@@ -111,18 +105,17 @@ export default function MachineDetail() {
           </div>
         </div>
 
-        {/* Add Breakdown Button */}
-        <button
-          className="add-breakdown-btn"
-          onClick={() => navigate(`/machine/${id}/breakdown`)}
-        >
-          ⚠ ADD BREAKDOWN
+        <button className="add-breakdown-btn" onClick={() => navigate(`/machine/${id}/breakdown`)}>
+          ⚠ ADD BREAKDOWN REPORT
         </button>
 
-        {/* Breakdown History */}
-        <div className="section-label">
-          Breakdown History ({machine.breakdowns?.length || 0})
-        </div>
+        {isLeadMechanic && (
+          <button className="btn-secondary" style={{ marginBottom: 12 }} onClick={() => navigate(`/machine/${id}/edit`)}>
+            ✏ EDIT MACHINE DETAILS
+          </button>
+        )}
+
+        <div className="section-label">Breakdown History ({machine.breakdowns?.length || 0})</div>
 
         {!machine.breakdowns || machine.breakdowns.length === 0 ? (
           <div className="empty-state" style={{ padding: '40px 20px' }}>
@@ -134,22 +127,21 @@ export default function MachineDetail() {
             <div key={bd._id || i} className="breakdown-item">
               <div className="breakdown-date">
                 <span>📅</span>
-                <span>
-                  {new Date(bd.createdAt).toLocaleString('en-GB', {
-                    day: '2-digit', month: 'short', year: 'numeric',
-                    hour: '2-digit', minute: '2-digit', second: '2-digit'
-                  })}
-                </span>
+                <span>{new Date(bd.createdAt).toLocaleString('en-GB', {
+                  day: '2-digit', month: 'short', year: 'numeric',
+                  hour: '2-digit', minute: '2-digit', second: '2-digit'
+                })}</span>
               </div>
+              {bd.addedByName && (
+                <div style={{ fontFamily: 'IBM Plex Mono', fontSize: 11, color: 'var(--accent)', marginBottom: 6 }}>
+                  🔧 {bd.addedByName}
+                </div>
+              )}
               <div className="breakdown-note">{bd.note}</div>
               {bd.images && bd.images.length > 0 && (
                 <div className="breakdown-imgs">
                   {bd.images.map((img, j) => (
-                    <div
-                      key={j}
-                      className="breakdown-img"
-                      onClick={() => setLightbox(getImageUrl(img))}
-                    >
+                    <div key={j} className="breakdown-img" onClick={() => setLightbox(getImageUrl(img))}>
                       <img src={getImageUrl(img)} alt={`breakdown ${j + 1}`} />
                     </div>
                   ))}
@@ -161,10 +153,11 @@ export default function MachineDetail() {
 
         <hr className="divider" />
 
-        {/* Delete */}
-        <button className="btn-secondary" onClick={handleDelete} style={{ color: 'var(--danger)', borderColor: 'rgba(239,68,68,0.3)' }}>
-          🗑 DELETE MACHINE
-        </button>
+        {isLeadMechanic && (
+          <button className="btn-secondary" onClick={handleDelete} style={{ color: 'var(--danger)', borderColor: 'rgba(239,68,68,0.3)' }}>
+            🗑 DELETE MACHINE
+          </button>
+        )}
       </div>
     </>
   );
