@@ -9,6 +9,7 @@ export default function SignIn() {
   const [form, setForm] = useState({ email: '', password: '' });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [showPassword, setShowPassword] = useState(false); // 👁 NEW
 
   const handleChange = (e) => {
     setForm(prev => ({ ...prev, [e.target.name]: e.target.value }));
@@ -16,7 +17,8 @@ export default function SignIn() {
   };
 
   const handleSubmit = async () => {
-    if (!form.email.trim() || !form.password.trim()) return setError('Email and password are required');
+    if (!form.email.trim() || !form.password.trim())
+      return setError('Email and password are required');
 
     setLoading(true);
     try {
@@ -56,15 +58,39 @@ export default function SignIn() {
 
         <div className="form-group">
           <label className="form-label">Password</label>
-          <input
-            className="form-input"
-            name="password"
-            type="password"
-            placeholder="Your password"
-            value={form.password}
-            onChange={handleChange}
-            onKeyDown={handleKeyDown}
-          />
+          {/* Password wrapper for show/hide */}
+          <div style={{ position: 'relative' }}>
+            <input
+              className="form-input"
+              name="password"
+              type={showPassword ? 'text' : 'password'}
+              placeholder="Your password"
+              value={form.password}
+              onChange={handleChange}
+              onKeyDown={handleKeyDown}
+              style={{ paddingRight: 44 }}
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword(prev => !prev)}
+              style={{
+                position: 'absolute',
+                right: 12,
+                top: '50%',
+                transform: 'translateY(-50%)',
+                background: 'none',
+                border: 'none',
+                cursor: 'pointer',
+                fontSize: 18,
+                color: 'var(--text3)',
+                padding: 0,
+                lineHeight: 1,
+              }}
+              aria-label={showPassword ? 'Hide password' : 'Show password'}
+            >
+              {showPassword ? '🙈' : '👁'}
+            </button>
+          </div>
         </div>
 
         {error && <div className="auth-error">⚠ {error}</div>}
