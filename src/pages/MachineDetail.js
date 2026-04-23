@@ -38,6 +38,10 @@ export default function MachineDetail() {
   };
 
   const handleDelete = async () => {
+    if (!canEdit) {
+      showToast('You can only delete machines you created');
+      return;
+    }
     if (!window.confirm('Delete this machine and all its records?')) return;
     try {
       await deleteMachine(id);
@@ -49,6 +53,9 @@ export default function MachineDetail() {
 
   if (loading) return <div className="loading" style={{ marginTop: 80 }}>LOADING...</div>;
   if (!machine) return <div className="loading" style={{ marginTop: 80 }}>NOT FOUND</div>;
+
+  // Check if current user is the creator
+  const canEdit = machine.createdBy && machine.createdBy._id === user?._id;
 
   const statusBtnClass = (s) => {
     if (machine.status !== s) return 'status-btn';
@@ -85,6 +92,7 @@ export default function MachineDetail() {
           {machine.createdBy && (
             <div style={{ fontSize: 11, color: 'var(--text3)', marginTop: 8, fontFamily: 'IBM Plex Mono' }}>
               Added by: {machine.createdBy.fullName}
+              {canEdit && <span style={{ color: 'var(--success)', marginLeft: 8 }}>(You can edit this)</span>}
             </div>
           )}
           
@@ -108,9 +116,12 @@ export default function MachineDetail() {
           ⚠ ADD BREAKDOWN REPORT
         </button>
 
-        <button className="btn-secondary" style={{ marginBottom: 12 }} onClick={() => navigate(`/machine/${id}/edit`)}>
-          ✏ EDIT MACHINE DETAILS
-        </button>
+        {/* Only show Edit button if user created this machine */}
+        {canEdit && (
+          <button className="btn-secondary" style={{ marginBottom: 12 }} onClick={() => navigate(`/machine/${id}/edit`)}>
+            ✏ EDIT MACHINE DETAILS
+          </button>
+        )}
 
         <div className="section-label">Breakdown History ({machine.breakdowns?.length || 0})</div>
 
@@ -131,7 +142,7 @@ export default function MachineDetail() {
               </div>
               {bd.addedByName && (
                 <div style={{ fontFamily: 'IBM Plex Mono', fontSize: 11, color: 'var(--accent)', marginBottom: 6 }}>
-                  🔧 {bd.addedByName}
+                  🔧 Reported by: {bd.addedByName}
                 </div>
               )}
               <div className="breakdown-note">{bd.note}</div>
@@ -150,9 +161,12 @@ export default function MachineDetail() {
 
         <hr className="divider" />
 
-        <button className="btn-secondary" onClick={handleDelete} style={{ color: 'var(--danger)', borderColor: 'rgba(239,68,68,0.3)' }}>
-          🗑 DELETE MACHINE
-        </button>
+        {/* Only show Delete button if user created this machine */}
+        {canEdit && (
+          <button className="btn-secondary" onClick={handleDelete} style={{ color: 'var(--danger)', borderColor: 'rgba(239,68,68,0.3)' }}>
+            🗑 DELETE MACHINE
+          </button>
+        )}
       </div>
     </>
   );
