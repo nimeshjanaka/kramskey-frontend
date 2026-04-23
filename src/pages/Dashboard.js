@@ -8,7 +8,7 @@ export default function Dashboard() {
   const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
-  const { user, logout, isLeadMechanic } = useAuth();
+  const { user, logout } = useAuth();
 
   const fetchMachines = useCallback(async () => {
     try {
@@ -32,13 +32,11 @@ export default function Dashboard() {
     operational: machines.filter(m => m.status === 'operational').length,
   };
 
-  // Avatar src for header
   const avatarSrc = user?.profilePicture ? getImageUrl(user.profilePicture) : null;
 
   return (
     <>
       <div className="header">
-        {/* Clickable logo → goes to dashboard (home) */}
         <div
           onClick={() => navigate('/')}
           style={{ cursor: 'pointer', userSelect: 'none' }}
@@ -49,17 +47,6 @@ export default function Dashboard() {
         </div>
 
         <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginLeft: 'auto' }}>
-          {isLeadMechanic && (
-            <button
-              className="btn-icon"
-              onClick={() => navigate('/team')}
-              title="Manage Team"
-            >
-              👥
-            </button>
-          )}
-
-          {/* Profile button — shows avatar thumbnail if set */}
           <button
             className="btn-icon"
             onClick={() => navigate('/profile')}
@@ -92,15 +79,11 @@ export default function Dashboard() {
       </div>
 
       <div className="page">
-        {/* User greeting */}
         <div className="user-greeting">
           <span>👋 {user?.fullName}</span>
-          <span className={`role-badge ${user?.role}`}>
-            {user?.role === 'lead_mechanic' ? '⭐ Lead Mechanic' : '🔧 Mechanic'}
-          </span>
+          <span className="role-badge">🔧 Mechanic</span>
         </div>
 
-        {/* Stats */}
         <div className="stats-row">
           <div className="stat-card">
             <div className="stat-num orange">{counts.total}</div>
@@ -116,7 +99,6 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* Search */}
         <div className="search-wrap">
           <input
             className="search-input"
@@ -127,7 +109,6 @@ export default function Dashboard() {
           <span className="search-icon">🔍</span>
         </div>
 
-        {/* List */}
         <div className="section-label">
           {search ? `Results for "${search}"` : 'All Machines'}
         </div>
@@ -165,18 +146,20 @@ export default function Dashboard() {
                 <span className="breakdown-count">
                   {machine.breakdowns?.length || 0} report{machine.breakdowns?.length !== 1 ? 's' : ''}
                 </span>
+                {machine.createdBy && (
+                  <span style={{ marginLeft: 'auto', fontSize: 10, color: 'var(--text3)' }}>
+                    by: {machine.createdBy.fullName}
+                  </span>
+                )}
               </div>
             </div>
           ))
         )}
       </div>
 
-      {/* Only lead mechanic can add machines */}
-      {isLeadMechanic && (
-        <button className="fab" onClick={() => navigate('/add-machine')}>
-          ＋ ADD MACHINE
-        </button>
-      )}
+      <button className="fab" onClick={() => navigate('/add-machine')}>
+        ＋ ADD MACHINE
+      </button>
     </>
   );
 }

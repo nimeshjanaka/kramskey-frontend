@@ -59,17 +59,6 @@ export const getUsers = async () => {
   return res.json();
 };
 
-export const updateUserRole = async (id, role) => {
-  const res = await fetch(`${BASE_URL}/users/${id}/role`, {
-    method: 'PUT',
-    headers: authHeaders(),
-    body: JSON.stringify({ role })
-  });
-  const json = await res.json();
-  if (!res.ok) throw new Error(json.error || 'Failed to update role');
-  return json;
-};
-
 // ── AVATAR ────────────────────────────────────────────
 export const uploadAvatar = async (file) => {
   const formData = new FormData();
@@ -149,8 +138,9 @@ export const deleteMachine = async (id) => {
     method: 'DELETE',
     headers: { Authorization: `Bearer ${getToken()}` }
   });
-  if (!res.ok) throw new Error('Failed to delete machine');
-  return res.json();
+  const json = await res.json();
+  if (!res.ok) throw new Error(json.error || 'Failed to delete machine');
+  return json;
 };
 
 export const getImageUrl = (path) => {

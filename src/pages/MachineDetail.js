@@ -6,7 +6,7 @@ import { useAuth } from '../context/AuthContext';
 export default function MachineDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { isLeadMechanic } = useAuth();
+  const { user } = useAuth();
   const [machine, setMachine] = useState(null);
   const [loading, setLoading] = useState(true);
   const [toast, setToast] = useState('');
@@ -28,7 +28,6 @@ export default function MachineDetail() {
   useEffect(() => { load(); }, [id]);
 
   const handleStatusChange = async (status) => {
-    if (!isLeadMechanic) return;
     try {
       await updateStatus(id, status);
       setMachine(prev => ({ ...prev, status }));
@@ -39,13 +38,12 @@ export default function MachineDetail() {
   };
 
   const handleDelete = async () => {
-    if (!isLeadMechanic) return;
     if (!window.confirm('Delete this machine and all its records?')) return;
     try {
       await deleteMachine(id);
       navigate('/');
-    } catch {
-      showToast('Failed to delete');
+    } catch (err) {
+      showToast(err.message);
     }
   };
 
@@ -83,19 +81,20 @@ export default function MachineDetail() {
           <div className="machine-detail-name">{machine.machineName}</div>
           <div className="machine-detail-num">Machine No. {machine.machineNumber}</div>
           <div className="machine-type-tag">{machine.machineType}</div>
-          <hr className="divider" style={{ marginTop: 12, marginBottom: 12 }} />
-          <div className="section-label">{isLeadMechanic ? 'Update Status' : 'Current Status'}</div>
-          {isLeadMechanic ? (
-            <div className="status-selector">
-              <button className={statusBtnClass('operational')} onClick={() => handleStatusChange('operational')}>✓ Operational</button>
-              <button className={statusBtnClass('breakdown')} onClick={() => handleStatusChange('breakdown')}>✕ Breakdown</button>
-              <button className={statusBtnClass('maintenance')} onClick={() => handleStatusChange('maintenance')}>⚙ Maintenance</button>
-            </div>
-          ) : (
-            <div style={{ marginBottom: 12 }}>
-              <span className={`status-badge ${machine.status}`} style={{ fontSize: 14, padding: '6px 14px' }}>{machine.status}</span>
+          
+          {machine.createdBy && (
+            <div style={{ fontSize: 11, color: 'var(--text3)', marginTop: 8, fontFamily: 'IBM Plex Mono' }}>
+              Added by: {machine.createdBy.fullName}
             </div>
           )}
+          
+          <hr className="divider" style={{ marginTop: 12, marginBottom: 12 }} />
+          <div className="section-label">Update Status</div>
+          <div className="status-selector">
+            <button className={statusBtnClass('operational')} onClick={() => handleStatusChange('operational')}>✓ Operational</button>
+            <button className={statusBtnClass('breakdown')} onClick={() => handleStatusChange('breakdown')}>✕ Breakdown</button>
+            <button className={statusBtnClass('maintenance')} onClick={() => handleStatusChange('maintenance')}>⚙ Maintenance</button>
+          </div>
           <div className="machine-meta" style={{ marginTop: 16 }}>
             <span>📅</span>
             <span>Last updated: {new Date(machine.updatedAt).toLocaleString('en-GB', {
@@ -109,11 +108,9 @@ export default function MachineDetail() {
           ⚠ ADD BREAKDOWN REPORT
         </button>
 
-        {isLeadMechanic && (
-          <button className="btn-secondary" style={{ marginBottom: 12 }} onClick={() => navigate(`/machine/${id}/edit`)}>
-            ✏ EDIT MACHINE DETAILS
-          </button>
-        )}
+        <button className="btn-secondary" style={{ marginBottom: 12 }} onClick={() => navigate(`/machine/${id}/edit`)}>
+          ✏ EDIT MACHINE DETAILS
+        </button>
 
         <div className="section-label">Breakdown History ({machine.breakdowns?.length || 0})</div>
 
@@ -153,11 +150,9 @@ export default function MachineDetail() {
 
         <hr className="divider" />
 
-        {isLeadMechanic && (
-          <button className="btn-secondary" onClick={handleDelete} style={{ color: 'var(--danger)', borderColor: 'rgba(239,68,68,0.3)' }}>
-            🗑 DELETE MACHINE
-          </button>
-        )}
+        <button className="btn-secondary" onClick={handleDelete} style={{ color: 'var(--danger)', borderColor: 'rgba(239,68,68,0.3)' }}>
+          🗑 DELETE MACHINE
+        </button>
       </div>
     </>
   );

@@ -1,12 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { getMachine, updateMachine } from '../services/api';
-import { useAuth } from '../context/AuthContext';
 
 export default function EditMachine() {
   const navigate = useNavigate();
   const { id } = useParams();
-  const { isLeadMechanic } = useAuth();
   const [form, setForm] = useState({ machineName: '', machineNumber: '', machineType: '' });
   const [loading, setLoading] = useState(false);
   const [fetching, setFetching] = useState(true);
@@ -14,20 +12,12 @@ export default function EditMachine() {
 
   useEffect(() => {
     getMachine(id)
-      .then(m => setForm({ machineName: m.machineName, machineNumber: m.machineNumber, machineType: m.machineType }))
+      .then(m => {
+        setForm({ machineName: m.machineName, machineNumber: m.machineNumber, machineType: m.machineType });
+      })
       .catch(() => setError('Failed to load machine'))
       .finally(() => setFetching(false));
   }, [id]);
-
-  if (!isLeadMechanic) {
-    return (
-      <div className="page" style={{ marginTop: 80, textAlign: 'center' }}>
-        <div style={{ fontSize: 48 }}>🚫</div>
-        <div style={{ fontFamily: 'Bebas Neue', fontSize: 20, marginTop: 12 }}>ACCESS DENIED</div>
-        <button className="btn-secondary" style={{ marginTop: 20 }} onClick={() => navigate(`/machine/${id}`)}>GO BACK</button>
-      </div>
-    );
-  }
 
   if (fetching) return <div className="loading" style={{ marginTop: 80 }}>LOADING...</div>;
 

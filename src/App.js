@@ -12,7 +12,6 @@ import SignIn from './pages/SignIn';
 import ForgotPassword from './pages/ForgotPassword';
 import ResetPassword from './pages/ResetPassword';
 import Profile from './pages/Profile';
-import TeamManagement from './pages/TeamManagement';
 
 import './App.css';
 
@@ -44,7 +43,6 @@ function AppRoutes() {
       <Route path="/machine/:id/breakdown" element={<PrivateRoute><AddBreakdown /></PrivateRoute>} />
       <Route path="/add-machine" element={<PrivateRoute><AddMachine /></PrivateRoute>} />
       <Route path="/profile" element={<PrivateRoute><Profile /></PrivateRoute>} />
-      <Route path="/team" element={<PrivateRoute><TeamManagement /></PrivateRoute>} />
 
       {/* Fallback */}
       <Route path="*" element={<Navigate to="/" replace />} />

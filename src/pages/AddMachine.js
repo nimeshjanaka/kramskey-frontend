@@ -1,25 +1,12 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { createMachine } from '../services/api';
-import { useAuth } from '../context/AuthContext';
 
 export default function AddMachine() {
   const navigate = useNavigate();
-  const { isLeadMechanic } = useAuth();
   const [form, setForm] = useState({ machineName: '', machineNumber: '', machineType: '', status: 'operational' });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-
-  if (!isLeadMechanic) {
-    return (
-      <div className="page" style={{ marginTop: 80, textAlign: 'center' }}>
-        <div style={{ fontSize: 48 }}>🚫</div>
-        <div style={{ fontFamily: 'Bebas Neue', fontSize: 20, marginTop: 12 }}>ACCESS DENIED</div>
-        <div style={{ color: 'var(--text3)', fontSize: 13, marginTop: 8 }}>Only Lead Mechanic can add machines.</div>
-        <button className="btn-secondary" style={{ marginTop: 20 }} onClick={() => navigate('/')}>GO BACK</button>
-      </div>
-    );
-  }
 
   const handleChange = (e) => {
     setForm(prev => ({ ...prev, [e.target.name]: e.target.value }));

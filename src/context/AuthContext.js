@@ -38,10 +38,8 @@ export function AuthProvider({ children }) {
     setUser(null);
   };
 
-  const isLeadMechanic = user?.role === 'lead_mechanic';
-
   return (
-    <AuthContext.Provider value={{ user, token, login, logout, loading, isLeadMechanic }}>
+    <AuthContext.Provider value={{ user, token, login, logout, loading }}>
       {children}
     </AuthContext.Provider>
   );
